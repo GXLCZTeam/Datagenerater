@@ -8,6 +8,7 @@ import math
 
 def INFO_image(path):
     """
+    获取影像的信息
     Args:
         path: img_path as:c:/xx/xx.tif
 
@@ -40,19 +41,20 @@ def WebMercator2WGS84(ImageTrans):
     ImageTrans[1],ImageTrans[5] = L_  - ImageTrans[0]  , B_ - ImageTrans[3]
     return ImageTrans
 
-def point2point(list,ImageShape,ImageTrans,ImagePrj):
+def point2point(list,ImageShape,ImageTrans,Mercator=True):
     LineRow = []
+    if Mercator:
+        ImageTrans = WebMercator2WGS84(ImageTrans)
+
     for each_LBH in list:
         L,B = each_LBH[0],each_LBH[1]
-        if 'Mercator' in ImagePrj:
-            ImageTrans = WebMercator2WGS84(ImageTrans)
-            line = np.around((L - ImageTrans[0])/ImageTrans[1])
-            row = np.around((B - ImageTrans[3])/ImageTrans[5])
-            assert line<= ImageShape[0] and  row<= ImageShape[1] , print('The data range exceeds the limit')
-            LineRow.append([line,row])
+        line = np.around((L - ImageTrans[0])/ImageTrans[1])
+        row = np.around((B - ImageTrans[3])/ImageTrans[5])
+        assert line<= ImageShape[0] and  row<= ImageShape[1] , 'The data range exceeds the limit'
+        LineRow.append([line,row])
     return LineRow
 
-def main(PointList,ImagePath):
+def main(PointList,ImagePath,Mercator=True):
     """
 
     Args:
@@ -63,10 +65,25 @@ def main(PointList,ImagePath):
 
     """
     ImageShape, ImageTrans, ImagePrj = INFO_image(ImagePath)
-    LineRow = point2point(PointList,ImageShape,ImageTrans,ImagePrj)
+    LineRow = point2point(PointList,ImageShape,ImageTrans,Mercator=Mercator)
     return ImageShape, ImageTrans, ImagePrj,LineRow
 
 if __name__ == '__main__':
-    PointList = [[104.663,30.125],[104.3333,30.15789]]
-    ImagePath = r'C:\Users\SAR\Desktop\矢量化示例\影像下载_2112072113\19\影像下载_2112072113.tif'
-    ImageShape, ImageTrans, ImagePrj,LineRow = main(PointList,ImagePath)
+    PointList = [[104.19158935546875,30.729441611765623],[104.22333333333333,30.71638888888889],[104.22361111111111,30.715833333333332]]
+    ImagePath = r'C:\Users\SAR\Desktop\作业或工作论文汇报与ppt\工作\做项目\国家重点研发计划\川藏线目标识别\矢量化示例\影像下载_2112072113\19\影像下载_2112072113.tif'
+    ImageShape, ImageTrans, ImagePrj,LineRow = main(PointList,ImagePath,Mercator=True)
+
+    # import matplotlib.pyplot as plt
+    # import matplotlib.patches as patches
+    # import cv2
+    # fig1 = plt.figure()
+    # ax1 = fig1.add_subplot(111, aspect='equal')
+    # A = cv2.imread(r'C:\Users\SAR\Desktop\2112072113.tif')
+    # ax1.imshow(A)
+    # ax1.add_patch(
+    #     patches.Rectangle(
+    #         LineRow[0],  # (x,y)
+    #         LineRow[1][0],  # width
+    #         LineRow[1][1],  # height
+    #     )
+    # )
